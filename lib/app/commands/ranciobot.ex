@@ -50,54 +50,53 @@ defmodule App.Commands.Ranciobot do
           [
             %{
               callback_data: "/menu primi",
-              text: "Primi",
+              text: "Primi 🍝",
             },
           ],
           [
             %{
               callback_data: "/menu secondi",
-              text: "Secondi",
+              text: "Secondi 🍖",
             },
             %{
               callback_data: "/menu contorni",
-              text: "Contorni",
+              text: "Contorni 🥗",
             },
           ]
         ]
       }
   end
 
+  defp build_inline_menu(getter) do
+    getter.() 
+      |> Enum.map(&(%{callback_data: "/add #{&1}", text: &1}))
+      |> Stream.chunk_every(3)
+      |> Enum.to_list()
+  end
+
   def menu_callback(update) do
     Logger.info "Callback /menu"
 
-    action = String.replace(update.message.text, "/menu ", "")
+    action = String.replace(update.callback_query.data, "/menu ", "")
 
     case action do
       "primi" ->
-      "secondi" ->
-      "contorni" ->
-      _ -> 
         send_message """
-        Menu del giorno:
+        Primi piatti:
         """, reply_markup: %Model.InlineKeyboardMarkup{
-            inline_keyboard: [
-              [
-                %{
-                  callback_data: "/menu primi",
-                  text: "Primi",
-                },
-              ],
-              [
-                %{
-                  callback_data: "/menu secondi",
-                  text: "Secondi",
-                },
-                %{
-                  callback_data: "/menu contorni",
-                  text: "Contorni",
-                },
-              ]
-            ]
+            inline_keyboard: build_inline_menu(&Menu.get_first/0)
+          }
+      "secondi" ->
+        send_message """
+        Secondi piatti:
+        """, reply_markup: %Model.InlineKeyboardMarkup{
+            inline_keyboard: build_inline_menu(&Menu.get_second/0)
+          }
+      "contorni" ->
+        send_message """
+        Contorni:
+        """, reply_markup: %Model.InlineKeyboardMarkup{
+            inline_keyboard: build_inline_menu(&Menu.get_side/0)
           }
     end
   end
@@ -115,30 +114,51 @@ defmodule App.Commands.Ranciobot do
   end
 
   # Admin features
+  defp set_dishes(message, prefix, setter) do
+    message
+      |> String.replace(prefix, "")
+      |> String.trim()
+      |> String.split(",")
+      |> setter.()
+  end
+
+  defp check_auth?(username) do
+    Enum.member?(Application.get_env(:app, :admin_list), username)
+  end
+
   def set_first(update) do
     Logger.info "Command /set_primi"
 
-    update.message.text
-      |> String.trim()
-      |> String.split(",")
-      |> Menu.set_first()
+    if check_auth?(update.message.from.username) do
+      set_dishes(update.message.text, "/set_primi ", &Menu.set_first/1)
+
+      send_message "Primi piatti inseriti!"
+    else
+      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
+    end
   end
 
   def set_second(update) do
     Logger.info "Command /set_secondi"
 
-    update.message.text
-      |> String.trim()
-      |> String.split(",")
-      |> Menu.set_second()
+    if check_auth?(update.message.from.username) do
+      set_dishes(update.message.text, "/set_secondi ", &Menu.set_second/1)
+
+      send_message "Secondi piatti inseriti!"
+    else
+      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
+    end
   end
 
   def set_side(update) do
     Logger.info "Command /set_contorni"
 
-    update.message.text
-      |> String.trim()
-      |> String.split(",")
-      |> Menu.set_side()
+    if check_auth?(update.message.from.username) do
+      set_dishes(update.message.text, "/set_contorni ", &Menu.set_side/1)
+      
+      send_message "Contorni inseriti!"
+    else
+      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
+    end
   end
 end

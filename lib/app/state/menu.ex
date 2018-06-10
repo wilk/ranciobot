@@ -1,7 +1,7 @@
 defmodule App.State.Menu do
   use Agent
   
-  @initial_state %{first: [], secondi: [], side: []}
+  @initial_state %{first: ["Pennette Vodka", "Aglio olio pepe", "Cacio pepe", "Arrabbiata", "Niente"], secondi: [], side: []}
 
   def start_link() do
     Agent.start_link(fn() -> @initial_state end, name: :menu)
