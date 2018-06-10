@@ -1,6 +1,8 @@
 defmodule App.Commands.Ranciobot do
   use App.Commander
+  alias App.State.Menu
 
+  # common features
   def start(update) do
     Logger.info "Command /start"
 
@@ -68,29 +70,36 @@ defmodule App.Commands.Ranciobot do
   def menu_callback(update) do
     Logger.info "Callback /menu"
 
-    # todo: implement first, second, and side dishes with the admin api
-    send_message """
-    Menu del giorno:
-    """, reply_markup: %Model.InlineKeyboardMarkup{
-        inline_keyboard: [
-          [
-            %{
-              callback_data: "/menu primi",
-              text: "Primi",
-            },
-          ],
-          [
-            %{
-              callback_data: "/menu secondi",
-              text: "Secondi",
-            },
-            %{
-              callback_data: "/menu contorni",
-              text: "Contorni",
-            },
-          ]
-        ]
-      }
+    action = String.replace(update.message.text, "/menu ", "")
+
+    case action do
+      "primi" ->
+      "secondi" ->
+      "contorni" ->
+      _ -> 
+        send_message """
+        Menu del giorno:
+        """, reply_markup: %Model.InlineKeyboardMarkup{
+            inline_keyboard: [
+              [
+                %{
+                  callback_data: "/menu primi",
+                  text: "Primi",
+                },
+              ],
+              [
+                %{
+                  callback_data: "/menu secondi",
+                  text: "Secondi",
+                },
+                %{
+                  callback_data: "/menu contorni",
+                  text: "Contorni",
+                },
+              ]
+            ]
+          }
+    end
   end
 
   def add_dish(update) do
@@ -102,6 +111,34 @@ defmodule App.Commands.Ranciobot do
   end
 
   def my_order(update) do
-    Logger.info "Command /mio_ordine"
+    Logger.info "Command /mia_nocciolina"
+  end
+
+  # Admin features
+  def set_first(update) do
+    Logger.info "Command /set_primi"
+
+    update.message.text
+      |> String.trim()
+      |> String.split(",")
+      |> Menu.set_first()
+  end
+
+  def set_second(update) do
+    Logger.info "Command /set_secondi"
+
+    update.message.text
+      |> String.trim()
+      |> String.split(",")
+      |> Menu.set_second()
+  end
+
+  def set_side(update) do
+    Logger.info "Command /set_contorni"
+
+    update.message.text
+      |> String.trim()
+      |> String.split(",")
+      |> Menu.set_side()
   end
 end

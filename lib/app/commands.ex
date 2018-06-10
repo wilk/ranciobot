@@ -12,7 +12,11 @@ defmodule App.Commands do
   
   callback_query_command "add", Ranciobot, :add_dish
   inline_query_command "rimuovi", Ranciobot, :rm_dish
-  command "mio_ordine", Ranciobot, :my_order
+  command "mia_nocciolina", Ranciobot, :my_order
+
+  command "set_primi", Ranciobot, :set_first
+  command "set_secondi", Ranciobot, :set_second
+  command "set_contorni", Ranciobot, :set_side
 
   # You can create commands in the format `/command` by
   # using the macro `command "command"`.
@@ -30,11 +34,6 @@ defmodule App.Commands do
     # See also: https://hexdocs.pm/nadia/Nadia.html
     send_message "Hello World!"
   end
-
-  # You may split code to other modules using the syntax
-  # "Module, :function" instead od "do..end"
-  command "outside", Outside, :outside
-  # For the sake of this tutorial, I'll define everything here
 
   command "question" do
     Logger.log :info, "Command /question"
