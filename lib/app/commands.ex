@@ -4,17 +4,21 @@ defmodule App.Commands do
 
   alias App.Commands.Ranciobot
 
+  # general help
   command "start", Ranciobot, :start
   command "help", Ranciobot, :help
 
+  # menu
   command "menu", Ranciobot, :menu_command
   callback_query_command "menu", Ranciobot, :menu_callback
   
+  # user order
   callback_query_command "add", Ranciobot, :add_dish
   inline_query_command "rimuovi", Ranciobot, :remove_dish_query
   command "rm", Ranciobot, :remove_dish
   command "mia_nocciolina", Ranciobot, :my_order
 
+  # admin features
   command "set_primi", Ranciobot, :set_first
   command "set_secondi", Ranciobot, :set_second
   command "set_contorni", Ranciobot, :set_side

@@ -4,6 +4,8 @@ defmodule App.Commands.Ranciobot do
   alias App.State.Orders
 
   # common features
+  
+  # bot presentation
   def start(update) do
     Logger.info "Command /start"
 
@@ -24,6 +26,7 @@ defmodule App.Commands.Ranciobot do
     """, parse_mode: "Markdown"
   end
 
+  # general help
   def help(update) do
     Logger.info "Command /help"
     IO.inspect update
@@ -41,6 +44,7 @@ defmodule App.Commands.Ranciobot do
     """, parse_mode: "Markdown"
   end
 
+  # list 3 action buttons, one for each type (first, second and side dishes)
   def menu_command(update) do
     Logger.info "Command /menu"
 
@@ -68,6 +72,7 @@ defmodule App.Commands.Ranciobot do
       }
   end
 
+  # common function for generating the action buttons for the choosen menu type 
   defp build_inline_menu(getter) do
     getter.() 
       |> Enum.map(&(%{callback_data: "/add #{&1}", text: &1}))
@@ -75,6 +80,7 @@ defmodule App.Commands.Ranciobot do
       |> Enum.to_list()
   end
 
+  # list the choosen menu type
   def menu_callback(update) do
     Logger.info "Callback /menu"
 
@@ -102,6 +108,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # add a dish to the user's order
   def add_dish(update) do
     Logger.info "Callback /add"
 
@@ -113,10 +120,9 @@ defmodule App.Commands.Ranciobot do
     send_message "#{dish} aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n#{dishes}", parse_mode: "Markdown"
   end
 
+  # list all the dishes selected by the user so they can remove it
   def remove_dish_query(update) do
     Logger.info "Inline Query Command /rimuovi"
-
-    IO.inspect(update)
 
     query = String.replace(update.inline_query.query, "/rimuovi ", "") |> String.downcase()
     Orders.get_order(update.inline_query.from.username)
@@ -131,6 +137,7 @@ defmodule App.Commands.Ranciobot do
       |> answer_inline_query()
   end
 
+  # remove a dish from the user's order
   def remove_dish(update) do
     Logger.info "Command /rm"
 
@@ -143,6 +150,7 @@ defmodule App.Commands.Ranciobot do
     send_message "#{dish} rimosso dall'ordine!\nLa tua nocciolina attualmente è composta da:\n#{dishes}", parse_mode: "Markdown"
   end
 
+  # get the user's order
   def my_order(update) do
     Logger.info "Command /mia_nocciolina"
 
@@ -152,6 +160,8 @@ defmodule App.Commands.Ranciobot do
   end
 
   # Admin features
+  
+  # common function to populate the menu types
   defp set_dishes(message, prefix, setter) do
     message
       |> String.replace(prefix, "")
@@ -160,10 +170,13 @@ defmodule App.Commands.Ranciobot do
       |> setter.()
   end
 
+  # common function to check if the current user can perform the action (admin only)
+  # todo: convert this function into a macro and so a decorator (@authenticated)
   defp check_auth?(username) do
     Enum.member?(Application.get_env(:app, :admin_list), username)
   end
 
+  # populate first dishes
   def set_first(update) do
     Logger.info "Command /set_primi"
 
@@ -176,6 +189,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # populate second dishes
   def set_second(update) do
     Logger.info "Command /set_secondi"
 
@@ -188,6 +202,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # populate side dishes
   def set_side(update) do
     Logger.info "Command /set_contorni"
 
@@ -198,5 +213,15 @@ defmodule App.Commands.Ranciobot do
     else
       send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
     end
+  end
+
+  def generate_final_order(update) do
+    order = Orders.get_order()
+
+    # todo: map of dishes (%{"spaghetti" => 2, "lasagna" => 3})
+    dishes = Map.values(order)
+      |> Enum.concat()
+      |> Enum.group_by(&(&1), Kernel.length/1)
+
   end
 end
