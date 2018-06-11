@@ -11,7 +11,8 @@ defmodule App.Commands do
   callback_query_command "menu", Ranciobot, :menu_callback
   
   callback_query_command "add", Ranciobot, :add_dish
-  inline_query_command "rimuovi", Ranciobot, :rm_dish
+  inline_query_command "rimuovi", Ranciobot, :remove_dish_query
+  command "rm", Ranciobot, :remove_dish
   command "mia_nocciolina", Ranciobot, :my_order
 
   command "set_primi", Ranciobot, :set_first

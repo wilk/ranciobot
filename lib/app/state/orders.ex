@@ -8,22 +8,32 @@ defmodule App.State.Orders do
 
   def add(username, dish) do
     Agent.update(:orders, fn(state) ->
-      order = state[String.to_atom(username)]
-      order = if order == nil do
-        [dish]
-      else
-        order ++ [dish]
+      dishes = state[username]
+      dishes = if dishes == nil do
+        []
       end
 
-      %{state | String.to_atom(username): order}
+      Map.put(state, username, dishes ++ [dish])
     end)
   end
 
-  def rm() do
-
+  def remove(username, dish) do
+    Agent.update(:orders, fn(state) ->
+      dishes = state[username]
+      if dishes == nil do
+        state
+      else
+        Map.put(state, username, dishes -- [dish])
+      end
+    end)
   end
 
   def get_order() do
+    Agent.get(:orders, fn(state) -> state end)
+  end
 
+  def get_order(username) do
+    order = Agent.get(:orders, fn(state) -> state end)
+    order[username]
   end
 end

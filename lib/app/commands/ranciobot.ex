@@ -1,6 +1,7 @@
 defmodule App.Commands.Ranciobot do
   use App.Commander
   alias App.State.Menu
+  alias App.State.Orders
 
   # common features
   def start(update) do
@@ -103,14 +104,51 @@ defmodule App.Commands.Ranciobot do
 
   def add_dish(update) do
     Logger.info "Callback /add"
+
+    dish = String.replace(update.callback_query.data, "/add ", "")
+
+    Orders.add(update.callback_query.from.username, dish)
+    dishes = Orders.get_order(update.callback_query.from.username) |> Enum.join("\n - ")
+
+    send_message "#{dish} aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n#{dishes}", parse_mode: "Markdown"
   end
 
-  def rm_dish(update) do
-    Logger.info "Inline Query Command /rm"
+  def remove_dish_query(update) do
+    Logger.info "Inline Query Command /rimuovi"
+
+    IO.inspect(update)
+
+    query = String.replace(update.inline_query.query, "/rimuovi ", "") |> String.downcase()
+    Orders.get_order(update.inline_query.from.username)
+      |> Enum.filter(&(String.contains?(String.downcase(&1), query)))
+      |> Enum.map(&(%InlineQueryResult.Article{
+        id: &1,
+        title: &1,
+        input_message_content: %{
+          message_text: "/rm #{&1}",
+        }
+      }))
+      |> answer_inline_query()
+  end
+
+  def remove_dish(update) do
+    Logger.info "Command /rm"
+
+    dish = String.replace(update.message.text, "/rm ", "")
+
+    Orders.remove(update.message.from.username, dish)
+
+    dishes = Orders.get_order(update.message.from.username) |> Enum.join("\n - ")
+
+    send_message "#{dish} rimosso dall'ordine!\nLa tua nocciolina attualmente è composta da:\n#{dishes}", parse_mode: "Markdown"
   end
 
   def my_order(update) do
     Logger.info "Command /mia_nocciolina"
+
+    dishes = Orders.get_order(update.message.from.username) |> Enum.join("\n - ")
+
+    send_message "La tua nocciolina è composta da:\n#{dishes}"
   end
 
   # Admin features
