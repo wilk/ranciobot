@@ -117,7 +117,7 @@ defmodule App.Commands.Ranciobot do
     Orders.add(update.callback_query.from.username, dish)
     dishes = Orders.get_order(update.callback_query.from.username) |> Enum.join("\n - ")
 
-    send_message "#{dish} aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n#{dishes}", parse_mode: "Markdown"
+    send_message "#{dish} aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
   end
 
   # list all the dishes selected by the user so they can remove it
@@ -147,7 +147,7 @@ defmodule App.Commands.Ranciobot do
 
     dishes = Orders.get_order(update.message.from.username) |> Enum.join("\n - ")
 
-    send_message "#{dish} rimosso dall'ordine!\nLa tua nocciolina attualmente è composta da:\n#{dishes}", parse_mode: "Markdown"
+    send_message "#{dish} rimosso dall'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
   end
 
   # get the user's order
@@ -218,10 +218,19 @@ defmodule App.Commands.Ranciobot do
   def generate_final_order(update) do
     order = Orders.get_order()
 
-    # todo: map of dishes (%{"spaghetti" => 2, "lasagna" => 3})
     dishes = Map.values(order)
       |> Enum.concat()
-      |> Enum.group_by(&(&1), Kernel.length/1)
+      |> Enum.map_reduce(%{}, fn(dish, acc) -> 
+        {dish, Map.update(acc, dish, 1, &(&1 + 1))}
+      end)
+      |> Tuple.to_list()
+      |> Enum.at(1)
+      |> Enum.map_join("\n", fn({k,v}) -> 
+        "- #{v} #{k}"
+      end)
+    
+    send_message "L'ordine è:\n#{dishes}"
 
+    Orders.reset()
   end
 end

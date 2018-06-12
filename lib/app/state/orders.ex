@@ -9,24 +9,14 @@ defmodule App.State.Orders do
   # add a new dish to the user's order
   def add(username, dish) do
     Agent.update(:orders, fn(state) ->
-      dishes = state[username]
-      dishes = if dishes == nil do
-        []
-      end
-
-      Map.put(state, username, dishes ++ [dish])
+      Map.update(state, username, [dish], &(&1 ++ [dish]))
     end)
   end
 
   # remove an existing dish from the user's order
   def remove(username, dish) do
     Agent.update(:orders, fn(state) ->
-      dishes = state[username]
-      if dishes == nil do
-        state
-      else
-        Map.put(state, username, dishes -- [dish])
-      end
+      Map.update(state, username, [], &(&1 -- [dish]))
     end)
   end
 
@@ -39,5 +29,10 @@ defmodule App.State.Orders do
   def get_order(username) do
     order = Agent.get(:orders, fn(state) -> state end)
     order[username]
+  end
+
+  # reset the current order
+  def reset() do
+    Agent.update(:orders, fn() -> @initial_state end)
   end
 end

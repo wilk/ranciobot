@@ -1,7 +1,7 @@
 defmodule App.State.Menu do
   use Agent
   
-  @initial_state %{first: ["Pennette Vodka", "Aglio olio pepe", "Cacio pepe", "Arrabbiata", "Niente"], secondi: [], side: []}
+  @initial_state %{first: [], second: [], side: []}
 
   def start_link() do
     Agent.start_link(fn() -> @initial_state end, name: :menu)
@@ -39,6 +39,6 @@ defmodule App.State.Menu do
 
   # reset current menu
   def reset() do
-    Agent.update(:menu, fn(state) -> @initial_state end)
+    Agent.update(:menu, fn() -> @initial_state end)
   end
 end

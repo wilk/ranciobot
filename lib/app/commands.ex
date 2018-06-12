@@ -22,6 +22,7 @@ defmodule App.Commands do
   command "set_primi", Ranciobot, :set_first
   command "set_secondi", Ranciobot, :set_second
   command "set_contorni", Ranciobot, :set_side
+  command "generate_order", Ranciobot, :generate_final_order
 
   # You can create commands in the format `/command` by
   # using the macro `command "command"`.
