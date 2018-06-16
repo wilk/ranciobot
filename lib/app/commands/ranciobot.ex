@@ -230,9 +230,13 @@ defmodule App.Commands.Ranciobot do
 
     if check_auth?(update.message.from.username) do
       set_dishes(update.message.text, "/set_primi ", &Menu.set_first/1)
-      progress = Menu.get_progress()
+      {progress, ready} = Menu.get_progress()
 
-      send_message "Primi piatti inseriti!\nPer completare il menu ti mancano:"
+      if ready do
+        send_message "Primi piatti inseriti! Menu completato 💪"
+      else
+        send_message "Primi piatti inseriti!\n Per completare il menu ti manca da aggiungere: #{progress}"
+      end
     else
       send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
     end

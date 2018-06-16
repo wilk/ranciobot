@@ -64,15 +64,23 @@ defmodule App.State.Menu do
 
       progress = if length(state.first) == 0 do
         progress ++ ["primi"]
-      end
-      progress = if length(state.second) == 0 do
-        progress ++ ["secondi"]
-      end
-      progress = if length(state.side) == 0 do
-        progress ++ ["contorni"]
+      else
+        progress
       end
 
-      progress |> Enum.join(", ")
+      progress = if length(state.second) == 0 do
+        progress ++ ["secondi"]
+      else
+        progress
+      end
+      
+      progress = if length(state.side) == 0 do
+        progress ++ ["contorni"]
+      else 
+        progress
+      end
+
+      {(progress |> Enum.join(", ")), state.ready}
     end)
   end
 
