@@ -113,11 +113,17 @@ defmodule App.Commands.Ranciobot do
     Logger.info "Callback /add"
 
     dish = String.replace(update.callback_query.data, "/add ", "")
+    user_dishes = Orders.get_order(update.callback_query.from.username)
 
-    Orders.add(update.callback_query.from.username, dish)
-    dishes = Orders.get_order(update.callback_query.from.username) |> Enum.join("\n - ")
-
-    send_message "#{dish} aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
+    cond do
+      user_dishes == nil or length(user_dishes) == 0 or !Enum.member?(user_dishes, dish) ->
+        Orders.add(update.callback_query.from.username, dish)
+        dishes = Orders.get_order(update.callback_query.from.username) |> Enum.join("\n - ")
+        send_message "Il piatto \"#{dish}\" è stato aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n -  #{dishes}", parse_mode: "Markdown"
+      Enum.member?(user_dishes, dish) ->
+        dishes = user_dishes |> Enum.join("\n - ")
+        send_message "Il piatto \"#{dish}\" è già presente nel tuo ordine!\nLa tua nocciolina attualmente è composta da:\n -  #{dishes}", parse_mode: "Markdown"
+    end
   end
 
   # list all the dishes selected by the user so they can remove it
