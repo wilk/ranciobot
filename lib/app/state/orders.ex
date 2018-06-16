@@ -33,6 +33,6 @@ defmodule App.State.Orders do
 
   # reset the current order
   def reset() do
-    Agent.update(:orders, fn() -> @initial_state end)
+    Agent.update(:orders, fn(_) -> @initial_state end)
   end
 end

@@ -3,7 +3,7 @@ defmodule App.Commands.Ranciobot do
   alias App.State.Menu
   alias App.State.Orders
 
-  # common features
+  ### USERS FEATURES ###
   
   # bot presentation
   def start(update) do
@@ -48,7 +48,8 @@ defmodule App.Commands.Ranciobot do
   def menu_command(update) do
     Logger.info "Command /menu"
 
-    send_message """
+    if Menu.is_ready? do
+      send_message """
     Menu del giorno:
     """, reply_markup: %Model.InlineKeyboardMarkup{
         inline_keyboard: [
@@ -70,6 +71,9 @@ defmodule App.Commands.Ranciobot do
           ]
         ]
       }
+    else
+      send_message "La cucina è chiusa... get lost!"
+    end
   end
 
   # common function for generating the action buttons for the choosen menu type 
@@ -88,23 +92,35 @@ defmodule App.Commands.Ranciobot do
 
     case action do
       "primi" ->
-        send_message """
+        if Menu.is_ready? do
+          send_message """
         Primi piatti:
         """, reply_markup: %Model.InlineKeyboardMarkup{
             inline_keyboard: build_inline_menu(&Menu.get_first/0)
           }
+        else
+          send_message "La cucina è chiusa... get lost!"
+        end
       "secondi" ->
-        send_message """
+        if Menu.is_ready? do
+          send_message """
         Secondi piatti:
         """, reply_markup: %Model.InlineKeyboardMarkup{
             inline_keyboard: build_inline_menu(&Menu.get_second/0)
           }
+        else
+          send_message "La cucina è chiusa... get lost!"
+        end
       "contorni" ->
-        send_message """
+        if Menu.is_ready? do
+          send_message """
         Contorni:
         """, reply_markup: %Model.InlineKeyboardMarkup{
             inline_keyboard: build_inline_menu(&Menu.get_side/0)
           }
+        else
+          send_message "La cucina è chiusa... get lost!"
+        end
     end
   end
 
@@ -112,17 +128,19 @@ defmodule App.Commands.Ranciobot do
   def add_dish(update) do
     Logger.info "Callback /add"
 
-    dish = String.replace(update.callback_query.data, "/add ", "")
+    dish = String.replace(update.callback_query.data, "/add ", "") |> String.trim()
     user_dishes = Orders.get_order(update.callback_query.from.username)
 
     cond do
+      !Menu.is_ready? ->
+        send_message "La cucina è chiusa... get lost!"
       user_dishes == nil or length(user_dishes) == 0 or !Enum.member?(user_dishes, dish) ->
         Orders.add(update.callback_query.from.username, dish)
         dishes = Orders.get_order(update.callback_query.from.username) |> Enum.join("\n - ")
-        send_message "Il piatto \"#{dish}\" è stato aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n -  #{dishes}", parse_mode: "Markdown"
+        send_message "Il piatto \"#{dish}\" è stato aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
       Enum.member?(user_dishes, dish) ->
         dishes = user_dishes |> Enum.join("\n - ")
-        send_message "Il piatto \"#{dish}\" è già presente nel tuo ordine!\nLa tua nocciolina attualmente è composta da:\n -  #{dishes}", parse_mode: "Markdown"
+        send_message "Il piatto \"#{dish}\" è già presente nel tuo ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
     end
   end
 
@@ -147,25 +165,35 @@ defmodule App.Commands.Ranciobot do
   def remove_dish(update) do
     Logger.info "Command /rm"
 
-    dish = String.replace(update.message.text, "/rm ", "")
-
-    Orders.remove(update.message.from.username, dish)
-
-    dishes = Orders.get_order(update.message.from.username) |> Enum.join("\n - ")
-
-    send_message "#{dish} rimosso dall'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
+    if Menu.is_ready? do
+      dish = String.replace(update.message.text, "/rm ", "")
+      Orders.remove(update.message.from.username, dish)
+      dishes = Orders.get_order(update.message.from.username) |> Enum.join("\n - ")
+      send_message "#{dish} rimosso dall'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
+    else
+      send_message "La cucina è chiusa... get lost!"
+    end
   end
 
   # get the user's order
   def my_order(update) do
     Logger.info "Command /mia_nocciolina"
 
-    dishes = Orders.get_order(update.message.from.username) |> Enum.join("\n - ")
+    if Menu.is_ready? do
+      dishes = Orders.get_order(update.message.from.username)
 
-    send_message "La tua nocciolina è composta da:\n#{dishes}"
+      if dishes == nil or length(dishes) == 0 do
+        send_message "Che dici? Cominciamo a ordinare qualcosa?"
+      else
+        msg = dishes |> Enum.join("\n - ")
+        send_message "La tua nocciolina è composta da:\n - #{msg}"
+      end
+    else
+      send_message "La cucina è chiusa... get lost!"
+    end
   end
 
-  # Admin features
+  ### ADMINS FEATURES ###
   
   # common function to populate the menu types
   defp set_dishes(message, prefix, setter) do
@@ -221,6 +249,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # generate the final order to send to the restaurant
   def generate_final_order(update) do
     order = Orders.get_order()
 
