@@ -3,6 +3,8 @@ defmodule App.Commands.Ranciobot do
   alias App.State.Menu
   alias App.State.Orders
 
+  @kitchen_closed_message "🖕 La cucina è chiusa... get lost! 🖕"   
+
   ### USERS FEATURES ###
   
   # bot presentation
@@ -72,7 +74,7 @@ defmodule App.Commands.Ranciobot do
         ]
       }
     else
-      send_message "La cucina è chiusa... get lost!"
+      send_message @kitchen_closed_message
     end
   end
 
@@ -99,7 +101,7 @@ defmodule App.Commands.Ranciobot do
             inline_keyboard: build_inline_menu(&Menu.get_first/0)
           }
         else
-          send_message "La cucina è chiusa... get lost!"
+          send_message @kitchen_closed_message
         end
       "secondi" ->
         if Menu.is_ready? do
@@ -109,7 +111,7 @@ defmodule App.Commands.Ranciobot do
             inline_keyboard: build_inline_menu(&Menu.get_second/0)
           }
         else
-          send_message "La cucina è chiusa... get lost!"
+          send_message @kitchen_closed_message
         end
       "contorni" ->
         if Menu.is_ready? do
@@ -119,8 +121,24 @@ defmodule App.Commands.Ranciobot do
             inline_keyboard: build_inline_menu(&Menu.get_side/0)
           }
         else
-          send_message "La cucina è chiusa... get lost!"
+          send_message @kitchen_closed_message
         end
+    end
+  end
+
+  defp add_dish(dish, username, update) do
+    user_dishes = Orders.get_order(username)
+
+    cond do
+      !Menu.is_ready? ->
+        send_message @kitchen_closed_message
+      user_dishes == nil or length(user_dishes) == 0 or !Enum.member?(user_dishes, dish) ->
+        Orders.add(username, dish)
+        dishes = Orders.get_order(username) |> Enum.join("\n - ")
+        send_message "Il piatto \"#{dish}\" è stato aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
+      Enum.member?(user_dishes, dish) ->
+        dishes = user_dishes |> Enum.join("\n - ")
+        send_message "Il piatto \"#{dish}\" è già presente nel tuo ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
     end
   end
 
@@ -129,19 +147,15 @@ defmodule App.Commands.Ranciobot do
     Logger.info "Callback /add"
 
     dish = String.replace(update.callback_query.data, "/add ", "") |> String.trim()
-    user_dishes = Orders.get_order(update.callback_query.from.username)
+    add_dish(dish, update.callback_query.from.username, update)
+  end
 
-    cond do
-      !Menu.is_ready? ->
-        send_message "La cucina è chiusa... get lost!"
-      user_dishes == nil or length(user_dishes) == 0 or !Enum.member?(user_dishes, dish) ->
-        Orders.add(update.callback_query.from.username, dish)
-        dishes = Orders.get_order(update.callback_query.from.username) |> Enum.join("\n - ")
-        send_message "Il piatto \"#{dish}\" è stato aggiunto all'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
-      Enum.member?(user_dishes, dish) ->
-        dishes = user_dishes |> Enum.join("\n - ")
-        send_message "Il piatto \"#{dish}\" è già presente nel tuo ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
-    end
+  # add a custom dish to the user's order
+  def add_custom_dish(update) do
+    Logger.info "Callback /add"
+
+    dish = String.replace(update.message.text, "/add ", "") |> String.trim()
+    add_dish(dish, update.message.from.username, update)
   end
 
   # list all the dishes selected by the user so they can remove it
@@ -171,7 +185,7 @@ defmodule App.Commands.Ranciobot do
       dishes = Orders.get_order(update.message.from.username) |> Enum.join("\n - ")
       send_message "#{dish} rimosso dall'ordine!\nLa tua nocciolina attualmente è composta da:\n - #{dishes}", parse_mode: "Markdown"
     else
-      send_message "La cucina è chiusa... get lost!"
+      send_message @kitchen_closed_message
     end
   end
 
@@ -189,7 +203,7 @@ defmodule App.Commands.Ranciobot do
         send_message "La tua nocciolina è composta da:\n - #{msg}"
       end
     else
-      send_message "La cucina è chiusa... get lost!"
+      send_message @kitchen_closed_message
     end
   end
 
@@ -216,8 +230,9 @@ defmodule App.Commands.Ranciobot do
 
     if check_auth?(update.message.from.username) do
       set_dishes(update.message.text, "/set_primi ", &Menu.set_first/1)
+      progress = Menu.get_progress()
 
-      send_message "Primi piatti inseriti!"
+      send_message "Primi piatti inseriti!\nPer completare il menu ti mancano:"
     else
       send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
     end
@@ -267,5 +282,6 @@ defmodule App.Commands.Ranciobot do
     send_message "L'ordine è:\n#{dishes}"
 
     Orders.reset()
+    Menu.reset()
   end
 end

@@ -51,8 +51,29 @@ defmodule App.State.Menu do
     Agent.get(:menu, &(&1.side))
   end
 
+  # check if the menu is ready or not
+  # todo: convert this function into a macro and so a decorator (@authenticated)
   def is_ready?() do
     Agent.get(:menu, &(&1.ready))
+  end
+
+  # calculate the current progress of the menu
+  def get_progress() do
+    Agent.get(:menu, fn(state) -> 
+      progress = []
+
+      progress = if length(state.first) == 0 do
+        progress ++ ["primi"]
+      end
+      progress = if length(state.second) == 0 do
+        progress ++ ["secondi"]
+      end
+      progress = if length(state.side) == 0 do
+        progress ++ ["contorni"]
+      end
+
+      progress |> Enum.join(", ")
+    end)
   end
 
   # reset current menu
