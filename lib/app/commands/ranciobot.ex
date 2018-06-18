@@ -96,7 +96,7 @@ defmodule App.Commands.Ranciobot do
       "primi" ->
         if Menu.is_ready? do
           send_message """
-        Primi piatti:
+        Primi piatti 🍝:
         """, reply_markup: %Model.InlineKeyboardMarkup{
             inline_keyboard: build_inline_menu(&Menu.get_first/0)
           }
@@ -106,7 +106,7 @@ defmodule App.Commands.Ranciobot do
       "secondi" ->
         if Menu.is_ready? do
           send_message """
-        Secondi piatti:
+        Secondi piatti 🍖:
         """, reply_markup: %Model.InlineKeyboardMarkup{
             inline_keyboard: build_inline_menu(&Menu.get_second/0)
           }
@@ -116,7 +116,7 @@ defmodule App.Commands.Ranciobot do
       "contorni" ->
         if Menu.is_ready? do
           send_message """
-        Contorni:
+        Contorni 🥗:
         """, reply_markup: %Model.InlineKeyboardMarkup{
             inline_keyboard: build_inline_menu(&Menu.get_side/0)
           }
@@ -210,12 +210,24 @@ defmodule App.Commands.Ranciobot do
   ### ADMINS FEATURES ###
   
   # common function to populate the menu types
-  defp set_dishes(message, prefix, setter) do
-    message
-      |> String.replace(prefix, "")
-      |> String.trim()
-      |> String.split(",")
-      |> setter.()
+  defp set_dishes(update, command_prefix, message_prefix, setter) do
+    if check_auth?(update.message.from.username) do
+      update.message.text
+        |> String.replace(command_prefix, "")
+        |> String.trim()
+        |> String.split(",")
+        |> setter.()
+      
+      {progress, ready} = Menu.get_progress()
+
+      if ready do
+        send_message "#{message_prefix} inseriti! Menu completato 💪"
+      else
+        send_message "#{message_prefix} inseriti!\nPer completare il menu ti manca da aggiungere: #{progress}"
+      end
+    else
+      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
+    end
   end
 
   # common function to check if the current user can perform the action (admin only)
@@ -228,44 +240,21 @@ defmodule App.Commands.Ranciobot do
   def set_first(update) do
     Logger.info "Command /set_primi"
 
-    if check_auth?(update.message.from.username) do
-      set_dishes(update.message.text, "/set_primi ", &Menu.set_first/1)
-      {progress, ready} = Menu.get_progress()
-
-      if ready do
-        send_message "Primi piatti inseriti! Menu completato 💪"
-      else
-        send_message "Primi piatti inseriti!\n Per completare il menu ti manca da aggiungere: #{progress}"
-      end
-    else
-      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
-    end
+    set_dishes(update, "/set_primi ", "Primi piatti", &Menu.set_first/1)
   end
 
   # populate second dishes
   def set_second(update) do
     Logger.info "Command /set_secondi"
 
-    if check_auth?(update.message.from.username) do
-      set_dishes(update.message.text, "/set_secondi ", &Menu.set_second/1)
-
-      send_message "Secondi piatti inseriti!"
-    else
-      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
-    end
+    set_dishes(update, "/set_secondi ", "Secondi piatti", &Menu.set_second/1)
   end
 
   # populate side dishes
   def set_side(update) do
     Logger.info "Command /set_contorni"
 
-    if check_auth?(update.message.from.username) do
-      set_dishes(update.message.text, "/set_contorni ", &Menu.set_side/1)
-      
-      send_message "Contorni inseriti!"
-    else
-      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
-    end
+    set_dishes(update, "/set_contorni ", "Contorni", &Menu.set_side/1)
   end
 
   # generate the final order to send to the restaurant
