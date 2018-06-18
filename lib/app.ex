@@ -21,7 +21,8 @@ defmodule App do
       worker(App.Poller, []),
       worker(App.Matcher, []),
       worker(App.State.Menu, []),
-      worker(App.State.Orders, [])
+      worker(App.State.Orders, []),
+      worker(App.State.Users, [])
     ]
 
     opts = [strategy: :one_for_one, name: App.Supervisor]

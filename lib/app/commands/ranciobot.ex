@@ -2,6 +2,7 @@ defmodule App.Commands.Ranciobot do
   use App.Commander
   alias App.State.Menu
   alias App.State.Orders
+  alias App.State.Users
 
   @kitchen_closed_message "🖕 La cucina è chiusa... get lost! 🖕"   
 
@@ -211,7 +212,7 @@ defmodule App.Commands.Ranciobot do
   
   # common function to populate the menu types
   defp set_dishes(update, command_prefix, message_prefix, setter) do
-    if check_auth?(update.message.from.username) do
+    if Users.is_member?(:admin, update.message.from.username) do
       update.message.text
         |> String.replace(command_prefix, "")
         |> String.trim()
@@ -228,12 +229,6 @@ defmodule App.Commands.Ranciobot do
     else
       send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
     end
-  end
-
-  # common function to check if the current user can perform the action (admin only)
-  # todo: convert this function into a macro and so a decorator (@authenticated)
-  defp check_auth?(username) do
-    Enum.member?(Application.get_env(:app, :admin_list), username)
   end
 
   # populate first dishes
