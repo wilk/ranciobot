@@ -272,4 +272,28 @@ defmodule App.Commands.Ranciobot do
     Orders.reset()
     Menu.reset()
   end
+
+  def add_user(update) do
+    # todo: implement it
+  end
+
+  def remove_user(update) do
+    # todo: implement it
+  end
+
+  def add_admin(update) do
+    # todo: implement it
+  end
+
+  def remove_admin(update) do
+    # todo: implement it
+  end
+
+  def list_users(update) do
+    # todo: implement it
+  end
+
+  def list_admins(update) do
+    # todo: implement it
+  end
 end
