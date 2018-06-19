@@ -5,8 +5,17 @@ defmodule App.State.Users do
   @initial_state %{admins: [Application.get_env(:app, :bot_owner)], users: []}
 
   def start_link() do
-    IO.inspect @initial_state
     Agent.start_link(fn() -> @initial_state end, name: :users)
+  end
+
+  # list all the users
+  def list(:user) do
+    Agent.get(:users, &(&1.users))
+  end
+
+  # list all the admins
+  def list(:admin) do
+    Agent.get(:users, &(&1.admins))
   end
 
   # Add a new user to the list

@@ -4,8 +4,10 @@ defmodule App.Commands.Ranciobot do
   alias App.State.Orders
   alias App.State.Users
 
-  @kitchen_closed_message "🖕 La cucina è chiusa... get lost! 🖕"   
+  @kitchen_closed_message "🖕 La cucina è chiusa... get lost! 🖕"
+  @admin_not_allowed_message "🤜 Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte? 🤛"  
 
+  # todo: split this file into two files, one for users and one for admins
   ### USERS FEATURES ###
   
   # bot presentation
@@ -32,7 +34,6 @@ defmodule App.Commands.Ranciobot do
   # general help
   def help(update) do
     Logger.info "Command /help"
-    IO.inspect update
 
     send_message """
     Povero, hai già dimenticato come usarmi?
@@ -227,7 +228,7 @@ defmodule App.Commands.Ranciobot do
         send_message "#{message_prefix} inseriti!\nPer completare il menu ti manca da aggiungere: #{progress}"
       end
     else
-      send_message "Uè giargiana, ma sai leggere o ti devo incidere la scritta \"Admin only\" sulla fronte?"
+      send_message @admin_not_allowed_message
     end
   end
 
@@ -254,46 +255,104 @@ defmodule App.Commands.Ranciobot do
 
   # generate the final order to send to the restaurant
   def generate_final_order(update) do
-    order = Orders.get_order()
+    Logger.info "Command /generate_order"
 
-    dishes = Map.values(order)
-      |> Enum.concat()
-      |> Enum.map_reduce(%{}, fn(dish, acc) -> 
-        {dish, Map.update(acc, dish, 1, &(&1 + 1))}
-      end)
-      |> Tuple.to_list()
-      |> Enum.at(1)
-      |> Enum.map_join("\n", fn({k,v}) -> 
-        "- #{v} #{k}"
-      end)
-    
-    send_message "L'ordine è:\n#{dishes}"
+    if Users.is_member?(:admin, update.message.from.username) do
+      order = Orders.get_order()
 
-    Orders.reset()
-    Menu.reset()
+      dishes = Map.values(order)
+        |> Enum.concat()
+        |> Enum.map_reduce(%{}, fn(dish, acc) -> 
+          {dish, Map.update(acc, dish, 1, &(&1 + 1))}
+        end)
+        |> Tuple.to_list()
+        |> Enum.at(1)
+        |> Enum.map_join("\n", fn({k,v}) -> 
+          "- #{v} #{k}"
+        end)
+      
+      send_message "L'ordine è:\n#{dishes}"
+
+      Orders.reset()
+      Menu.reset()
+    else
+      send_message @admin_not_allowed_message
+    end
   end
 
   def add_user(update) do
-    # todo: implement it
+    Logger.info "Command /add_user"
+
+    if Users.is_member?(:admin, update.message.from.username) do
+      username = update.message.text |> String.replace("/add_user ", "")
+      Users.add(:user, username)
+
+      send_message "#{username} aggiunto alla lista di utenti 🤘"
+    else
+      send_message @admin_not_allowed_message
+    end
   end
 
   def remove_user(update) do
-    # todo: implement it
+    Logger.info "Command /remove_user"
+
+    if Users.is_member?(:admin, update.message.from.username) do
+      username = update.message.text |> String.replace("/remove_user ", "")
+      Users.remove(:user, username)
+
+      send_message "#{username} rimosso dalla lista di user 👍"
+    else
+      send_message @admin_not_allowed_message
+    end
   end
 
   def add_admin(update) do
-    # todo: implement it
+    Logger.info "Command /add_admin"
+
+    if Users.is_member?(:admin, update.message.from.username) do
+      username = update.message.text |> String.replace("/add_admin ", "")
+      Users.add(:admin, username)
+
+      send_message "#{username} aggiunto alla lista di admin 🤘"
+    else
+      send_message @admin_not_allowed_message
+    end
   end
 
   def remove_admin(update) do
-    # todo: implement it
+    Logger.info "Command /remove_admin"
+
+    if Users.is_member?(:admin, update.message.from.username) do
+      username = update.message.text |> String.replace("/remove_admin ", "")
+      Users.remove(:admin, username)
+
+      send_message "#{username} rimosso dalla lista di admin 👍"
+    else
+      send_message @admin_not_allowed_message
+    end
   end
 
   def list_users(update) do
-    # todo: implement it
+    Logger.info "Command /list_users"
+
+    if Users.is_member?(:admin, update.message.from.username) do
+      users = Users.list(:user) |> Enum.join("\n - ")
+
+      send_message "Lista degli utenti registrati:\n - #{users}"
+    else
+      send_message @admin_not_allowed_message
+    end
   end
 
   def list_admins(update) do
-    # todo: implement it
+    Logger.info "Command /list_admins"
+
+    if Users.is_member?(:admin, update.message.from.username) do
+      admins = Users.list(:admin) |> Enum.join("\n - ")
+
+      send_message "Lista degli admin registrati:\n - #{admins}"
+    else
+      send_message @admin_not_allowed_message
+    end
   end
 end
