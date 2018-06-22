@@ -24,10 +24,10 @@ defmodule App.Commands do
   command "set_secondi", Ranciobot, :set_second
   command "set_contorni", Ranciobot, :set_side
   command "add_user", Ranciobot, :add_user
-  # todo: change this into an inline_query_command
+  inline_query_command "remove_user", Ranciobot, :remove_user_query
   command "remove_user", Ranciobot, :remove_user
   command "add_admin", Ranciobot, :add_admin
-  # todo: change this into an inline_query_command
+  inline_query_command "remove_admin", Ranciobot, :remove_admin_query
   command "remove_admin", Ranciobot, :remove_admin
   command "list_users", Ranciobot, :list_users
   command "list_admins", Ranciobot, :list_admins

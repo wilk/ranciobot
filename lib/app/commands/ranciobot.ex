@@ -280,6 +280,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # add an user to the users list
   def add_user(update) do
     Logger.info "Command /add_user"
 
@@ -293,6 +294,24 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # list all the users an admin can remove
+  def remove_user_query(update) do
+    Logger.info "Inline Query Command /remove_user"
+
+    query = String.replace(update.inline_query.query, "/remove_user ", "") |> String.downcase()
+    Users.list(:user)
+      |> Enum.filter(&(String.contains?(String.downcase(&1), query)))
+      |> Enum.map(&(%InlineQueryResult.Article{
+        id: &1,
+        title: &1,
+        input_message_content: %{
+          message_text: "/remove_user #{&1}",
+        }
+      }))
+      |> answer_inline_query()
+  end
+
+  # remove an user from the users list
   def remove_user(update) do
     Logger.info "Command /remove_user"
 
@@ -306,6 +325,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # add an admin to the admins list
   def add_admin(update) do
     Logger.info "Command /add_admin"
 
@@ -319,6 +339,24 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # list all the admins an admin can remove
+  def remove_admin_query(update) do
+    Logger.info "Inline Query Command /remove_admin"
+
+    query = String.replace(update.inline_query.query, "/remove_admin ", "") |> String.downcase()
+    Users.list(:admin)
+      |> Enum.filter(&(String.contains?(String.downcase(&1), query)))
+      |> Enum.map(&(%InlineQueryResult.Article{
+        id: &1,
+        title: &1,
+        input_message_content: %{
+          message_text: "/remove_admin #{&1}",
+        }
+      }))
+      |> answer_inline_query()
+  end
+
+  # remove an admin from the admnins list
   def remove_admin(update) do
     Logger.info "Command /remove_admin"
 
@@ -332,6 +370,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # list available users
   def list_users(update) do
     Logger.info "Command /list_users"
 
@@ -344,6 +383,7 @@ defmodule App.Commands.Ranciobot do
     end
   end
 
+  # list available admins
   def list_admins(update) do
     Logger.info "Command /list_admins"
 
