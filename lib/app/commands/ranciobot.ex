@@ -210,6 +210,37 @@ defmodule App.Commands.Ranciobot do
   end
 
   ### ADMINS FEATURES ###
+
+  # admin help
+  def help(update) do
+    Logger.info "Command /help_admin"
+    if Users.is_member?(:admin, update.message.from.username) do
+      send_message """
+      Per i potenti e forti amministratori come te, ecco cosa puoi farmi fare 🤘
+      Le azioni si suddividono in definizione del *Menu* e gestione degli *Utenti*.
+
+      Per popolare il menu, i seguenti comandi:
+      - /set_primi Piatto1, Piatto2, Piatto3, ... : definisci i primi piatti del menu
+      - /set_secondi Piatto1, Piatto2, Piatto3, ... : definisci i secondi piatti del menu
+      - /set_contorni Piatto1, Piatto2, Piatto3, ... : definisci i contorni del menu
+
+      Puoi infine generare l'ordine attraverso il comando */generate_order*.
+      Con questo comando resetterai anche il Menu e l'Ordine, cancellandoli del tutto e chiudendo così la cucina.
+
+      Per aggiungere utenti e admin, i seguenti comandi:
+      - /add_user utente : aggiungi un utente
+      - @ranciobot /remove_user <utente scelto> : rimuovi un utente
+      - /add_admin utente : aggiungi un admin
+      - @ranciobot /remove_admin <admin scelto> : rimuovi un admin
+      - /list_users : mostra lista utenti
+      - /list_admins : mostra lista admin
+
+      Ricorda che gli admin sono utenti che possono gestire il menu, l'ordine e la lista di utenti e admin, oltre all'ordinare i piatti come gli altri utenti.
+      """, parse_mode: "Markdown"
+    else
+      send_message @admin_not_allowed_message
+    end
+  end
   
   # common function to populate the menu types
   defp set_dishes(update, command_prefix, message_prefix, setter) do

@@ -7,6 +7,7 @@ defmodule App.Commands do
   # general help
   command "start", Ranciobot, :start
   command "help", Ranciobot, :help
+  command "help_admin", Ranciobot, :help_admin
 
   # menu
   command "menu", Ranciobot, :menu_command
