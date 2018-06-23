@@ -2,6 +2,7 @@
 defmodule App.State.Users do
   use Agent
 
+  # todo: unify users and admins, giving to admins a special flag
   @initial_state %{admins: [Application.get_env(:app, :bot_owner)], users: []}
 
   def start_link() do

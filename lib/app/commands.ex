@@ -2,37 +2,38 @@ defmodule App.Commands do
   use App.Router
   use App.Commander
 
-  alias App.Commands.Ranciobot
+  alias App.Commands.Admin
+  alias App.Commands.User
 
   # general help
-  command "start", Ranciobot, :start
-  command "help", Ranciobot, :help
-  command "help_admin", Ranciobot, :help_admin
+  command "start", User, :start
+  command "help", User, :help
 
   # menu
-  command "menu", Ranciobot, :menu_command
-  callback_query_command "menu", Ranciobot, :menu_callback
+  command "menu", User, :menu_command
+  callback_query_command "menu", User, :menu_callback
   
   # user order
-  callback_query_command "add", Ranciobot, :add_dish
-  inline_query_command "rimuovi", Ranciobot, :remove_dish_query
-  command "add", Ranciobot, :add_custom_dish
-  command "rm", Ranciobot, :remove_dish
-  command "mia_nocciolina", Ranciobot, :my_order
+  callback_query_command "add", User, :add_dish
+  inline_query_command "rimuovi", User, :remove_dish_query
+  command "add", User, :add_custom_dish
+  command "rm", User, :remove_dish
+  command "mia_nocciolina", User, :my_order
 
   # admin features
-  command "set_primi", Ranciobot, :set_first
-  command "set_secondi", Ranciobot, :set_second
-  command "set_contorni", Ranciobot, :set_side
-  command "add_user", Ranciobot, :add_user
-  inline_query_command "remove_user", Ranciobot, :remove_user_query
-  command "remove_user", Ranciobot, :remove_user
-  command "add_admin", Ranciobot, :add_admin
-  inline_query_command "remove_admin", Ranciobot, :remove_admin_query
-  command "remove_admin", Ranciobot, :remove_admin
-  command "list_users", Ranciobot, :list_users
-  command "list_admins", Ranciobot, :list_admins
-  command "generate_order", Ranciobot, :generate_final_order
+  command "help_admin", Admin, :help_admin
+  command "set_primi", Admin, :set_first
+  command "set_secondi", Admin, :set_second
+  command "set_contorni", Admin, :set_side
+  command "add_user", Admin, :add_user
+  inline_query_command "remove_user", Admin, :remove_user_query
+  command "remove_user", Admin, :remove_user
+  command "add_admin", Admin, :add_admin
+  inline_query_command "remove_admin", Admin, :remove_admin_query
+  command "remove_admin", Admin, :remove_admin
+  command "list_users", Admin, :list_users
+  command "list_admins", Admin, :list_admins
+  command "generate_order", Admin, :generate_final_order
 
   # Rescues any unmatched callback query.
   callback_query do
