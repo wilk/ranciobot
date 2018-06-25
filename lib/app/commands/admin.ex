@@ -19,7 +19,7 @@ defmodule App.Commands.Admin do
       - /set_secondi Piatto1, Piatto2, Piatto3, ... : definisci i secondi piatti del menu
       - /set_contorni Piatto1, Piatto2, Piatto3, ... : definisci i contorni del menu
 
-      Puoi infine generare l'ordine attraverso il comando */generate_order*.
+      Puoi infine generare l'ordine attraverso il comando /generate_order.
       Con questo comando resetterai anche il Menu e l'Ordine, cancellandoli del tutto e chiudendo così la cucina.
 
       Per aggiungere utenti e admin, i seguenti comandi:
@@ -31,7 +31,7 @@ defmodule App.Commands.Admin do
       - /list_admins : mostra lista admin
 
       Ricorda che gli admin sono utenti che possono gestire il menu, l'ordine e la lista di utenti e admin, oltre all'ordinare i piatti come gli altri utenti.
-      """, parse_mode: "Markdown"
+      """
     else
       send_message @admin_not_allowed_message
     end
@@ -112,7 +112,7 @@ defmodule App.Commands.Admin do
 
     if Users.is_member?(:admin, update.message.from.username) do
       username = update.message.text |> String.replace("/add_user ", "")
-      Users.add(:user, username)
+      Users.add(username)
 
       send_message "#{username} aggiunto alla lista di utenti 🤘"
     else
@@ -143,7 +143,7 @@ defmodule App.Commands.Admin do
 
     if Users.is_member?(:admin, update.message.from.username) do
       username = update.message.text |> String.replace("/remove_user ", "")
-      Users.remove(:user, username)
+      Users.remove(username)
 
       send_message "#{username} rimosso dalla lista di user 👍"
     else
@@ -151,46 +151,46 @@ defmodule App.Commands.Admin do
     end
   end
 
-  # add an admin to the admins list
-  def add_admin(update) do
-    Logger.info "Command /add_admin"
+  # upgrade an user to be an admin
+  def set_admin(update) do
+    Logger.info "Command /set_admin"
 
     if Users.is_member?(:admin, update.message.from.username) do
-      username = update.message.text |> String.replace("/add_admin ", "")
-      Users.add(:admin, username)
+      username = update.message.text |> String.replace("/set_admin ", "")
+      Users.set_admin(username)
 
-      send_message "#{username} aggiunto alla lista di admin 🤘"
+      send_message "#{username} è diventato admin 🤘"
     else
       send_message @admin_not_allowed_message
     end
   end
 
   # list all the admins an admin can remove
-  def remove_admin_query(update) do
-    Logger.info "Inline Query Command /remove_admin"
+  def unset_admin_query(update) do
+    Logger.info "Inline Query Command /unset_admin"
 
-    query = String.replace(update.inline_query.query, "/remove_admin ", "") |> String.downcase()
+    query = String.replace(update.inline_query.query, "/unset_admin ", "") |> String.downcase()
     Users.list(:admin)
       |> Enum.filter(&(String.contains?(String.downcase(&1), query)))
       |> Enum.map(&(%InlineQueryResult.Article{
         id: &1,
         title: &1,
         input_message_content: %{
-          message_text: "/remove_admin #{&1}",
+          message_text: "/unset_admin #{&1}",
         }
       }))
       |> answer_inline_query()
   end
 
   # remove an admin from the admnins list
-  def remove_admin(update) do
-    Logger.info "Command /remove_admin"
+  def unset_admin(update) do
+    Logger.info "Command /unset_admin"
 
     if Users.is_member?(:admin, update.message.from.username) do
-      username = update.message.text |> String.replace("/remove_admin ", "")
-      Users.remove(:admin, username)
+      username = update.message.text |> String.replace("/unset_admin ", "")
+      Users.unset_admin(username)
 
-      send_message "#{username} rimosso dalla lista di admin 👍"
+      send_message "#{username} è ora un utente normale 👍"
     else
       send_message @admin_not_allowed_message
     end

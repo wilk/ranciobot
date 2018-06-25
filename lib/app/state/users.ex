@@ -20,7 +20,7 @@ defmodule App.State.Users do
 
   # list all the admins
   def list(:admin) do
-    Agent.get(:users, , fn(users) ->
+    Agent.get(:users, fn(users) ->
       users
         |> Enum.filter(&(&1.is_admin?))
         |> Enum.map(&(&1.username))
@@ -28,7 +28,7 @@ defmodule App.State.Users do
   end
 
   # Add a new user to the list
-  def add(:user, username) do
+  def add(username) do
     Agent.update(:users, fn(users) ->
       if Enum.find(users, &(&1.username == username)) == nil do
         users ++ [%{username: username, is_admin?: false}]
@@ -39,11 +39,13 @@ defmodule App.State.Users do
   end
 
   # Add a new admin to the list
-  # todo: change this in "set_admin"
-  def add(:admin, username) do
+  def set_admin(username) do
     Agent.update(:users, fn(users) ->
-      if Enum.find(users, &(&1.username == username)) == nil do
-        users ++ [%{username: username, is_admin?: true}]
+      index = Enum.find_index(users, &(&1.username == username))
+
+      if index != nil do
+        user = Enum.at(users, index)
+        List.update_at(users, index, %{user | is_admin?: true})
       else
         users
       end
@@ -51,7 +53,7 @@ defmodule App.State.Users do
   end
 
   # Remove an existing user from the list
-  def remove(:user, username) do
+  def remove(username) do
     Agent.update(:users, fn(users) ->
       user = Enum.find(users, &(&1.username == username))
 
@@ -64,28 +66,28 @@ defmodule App.State.Users do
   end
 
   # Remove an existing admin from the list
-  # @todo: convert into unset_admin
-  def remove(:admin, username) do
-    Agent.update(:users, fn(state) ->
-      admins = if Enum.member? state.admins, username do
-        state.admins -- [username]
-      else
-        state.admins
-      end
+  def unset_admin(username) do
+    Agent.update(:users, fn(users) ->
+      index = Enum.find_index(users, &(&1.username == username))
 
-      %{state | admins: admins}
+      if index != nil do
+        user = Enum.at(users, index)
+        List.update_at(users, index, %{user | is_admin?: false})
+      else
+        users
+      end
     end)
   end
 
   # check if an user is already registered
   def is_member?(:user, username) do
-    Agent.get(:users, fn(users) -> Enum.find(users, &(&.username == username)) != nil end)
+    Agent.get(:users, fn(users) -> Enum.find(users, &(&1.username == username)) != nil end)
   end
 
   # check if an user is an admin
   def is_member?(:admin, username) do
     Agent.get(:users, fn(users) -> 
-      user = Enum.find(users, &(&.username == username))
+      user = Enum.find(users, &(&1.username == username))
       user != nil and user.is_admin?
     end)
   end

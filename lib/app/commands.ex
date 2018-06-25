@@ -21,16 +21,16 @@ defmodule App.Commands do
   command "mia_nocciolina", User, :my_order
 
   # admin features
-  command "help_admin", Admin, :help_admin
+  command "help_admin", Admin, :help
   command "set_primi", Admin, :set_first
   command "set_secondi", Admin, :set_second
   command "set_contorni", Admin, :set_side
   command "add_user", Admin, :add_user
   inline_query_command "remove_user", Admin, :remove_user_query
   command "remove_user", Admin, :remove_user
-  command "add_admin", Admin, :add_admin
-  inline_query_command "remove_admin", Admin, :remove_admin_query
-  command "remove_admin", Admin, :remove_admin
+  command "set_admin", Admin, :set_admin
+  inline_query_command "unset_admin", Admin, :unset_admin_query
+  command "unset_admin", Admin, :unset_admin
   command "list_users", Admin, :list_users
   command "list_admins", Admin, :list_admins
   command "generate_order", Admin, :generate_final_order
