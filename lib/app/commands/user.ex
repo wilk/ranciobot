@@ -40,9 +40,10 @@ defmodule App.Commands.User do
       send_message """
       Povero, hai già dimenticato come usarmi?
 
-      Prova a digitare "*/menu*" per vedere cosa potresti mangiare oggi e poi niente: clicca sui vari bottoni e vedrai che qualcosa aggiungi al tuo ordine
+      Prova a digitare "*/menu*" per vedere cosa potresti mangiare oggi, e poi niente: clicca sui vari bottoni e vedrai che qualcosa aggiungi al tuo ordine
       Ah si, e se vuoi vedere il tuo ordine digita "*/mia_nocciolina*"
       Se invece hai ripensamenti perché sei diversamente ricco, digita "*@ranciobot /rimuovi <piatto>*" così non dovrai lavari i piatti dopo esserti rifocillato
+      Infine, se proprio hai gusti raffinati, puoi aggiungere un piatto fuori menu, digitando "*/add <piatto>*"
 
       Come al solito, *il menu è pronto circa per le 11:00 mentre non accetto più ordini dalle 11:40 in poi*
 
