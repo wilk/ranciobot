@@ -18,7 +18,10 @@ defmodule App.Mixfile do
   end
 
   defp deps do
-    [{:nadia, "~> 0.4.1"}]
+    [
+      {:nadia, "~> 0.4.1"},
+      {:distillery, "~> 1.5.2", runtime: false}
+    ]
   end
 
   defp aliases do
