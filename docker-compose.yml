@@ -2,7 +2,7 @@ version: '3'
 
 services:
   app:
-    command: "_build/dev/rel/ranciobot/bin/ranciobot foreground"
+    command: "_build/dev/rel/app/bin/app foreground"
     image: ranciobot:1.0.0
     build:
       context: .
