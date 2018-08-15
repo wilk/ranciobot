@@ -13,3 +13,6 @@ RancioBot, a bot used from starving people.
 - v1.1.0:
   - profile users: propose same dishes
   - fixed menu pizza
+
+## Proposal
+Use an action button as a response for every action, so the user will have always something to do.
